@@ -1,26 +1,41 @@
-use colored::{ColoredString, Colorize, CustomColor};
-use rand::{random, rngs::ThreadRng, seq::SliceRandom, thread_rng};
-use std::{io, iter::repeat_n, thread::sleep, time::Duration};
+use colored::{Colorize, CustomColor};
+use rand::{random, seq::SliceRandom, thread_rng};
+use std::{io, thread::sleep, time::Duration};
 pub static FRONT_CHARS: &[&str] = &["£", "٥", "o", "?", "J"];
 pub static BACK_CHARS: &[&str] = &["3", "٥", "o", "?", "J"];
 pub static MIDDLE_CHARS: &[&str] = &["٥", "o"];
-pub static SET: [u8; 16] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4];
+pub static SET: [u8; 16] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 4];
 
 fn input_width() -> usize {
-        // println!("enter width");
-        // let mut string = String::new();
-        // io::stdin().read_line(&mut string).unwrap();
+        println!("enter width");
+        let mut string = String::new();
+        io::stdin().read_line(&mut string).unwrap();
 
-        // string.trim_end().parse().unwrap()
-        18
+        string.trim_end().parse().unwrap()
 }
 
-fn random_bright_color() -> CustomColor {
-        let r = random::<u8>().saturating_add(128);
-        let g = random::<u8>().saturating_add(128);
-        let b = random::<u8>().saturating_add(128);
+fn input_padding() -> usize {
+        println!("enter padding");
+        let mut string = String::new();
+        io::stdin().read_line(&mut string).unwrap();
 
-        CustomColor { r, g, b }
+        string.trim_end().parse().unwrap()
+}
+
+pub static BATCH: &[CustomColor] = &[
+        CustomColor { r: 255, g: 0, b: 0 },
+        CustomColor { r: 255, g: 191, b: 0 },
+        CustomColor { r: 255, g: 255, b: 0 },
+        CustomColor { r: 0, g: 255, b: 0 },
+        CustomColor { r: 0, g: 0, b: 255 },
+        CustomColor { r: 255, g: 0, b: 255 },
+        CustomColor { r: 0, g: 255, b: 255 },
+        CustomColor { r: 255, g: 255, b: 255 },
+        CustomColor { r: 227, g: 154, b: 255 },
+];
+
+fn random_bright_color() -> CustomColor {
+        *BATCH.choose(&mut thread_rng()).unwrap()
 }
 
 fn random_front_shape() -> &'static str {
@@ -34,48 +49,73 @@ fn random_middle_shape() -> &'static str {
 }
 
 fn body(prev: bool) -> bool {
-        if (SET.choose(&mut thread_rng()).unwrap() == &4) && (!prev) {
+        let temp = SET.choose(&mut thread_rng()).unwrap() == &4;
+        if temp && (!prev) {
                 let temp = random_middle_shape();
                 print!("{}", temp);
                 true
+        } else if temp {
+                print!("{}", "*".custom_color(CustomColor { r: 136, g: 91, b: 28 }));
+                false
+        } else if SET.choose(&mut thread_rng()).unwrap() == &3 {
+                print!("{}", "*".white());
+                false
         } else {
                 print!("{}", "*".green());
                 false
         }
 }
 
-fn main_loop(width: usize) {
+fn main_loop(width: usize, padding: usize) {
         // TODO random colors
         let final_len = (width * 2) + 1;
-        let pad = (final_len - 1) / 2;
+        let pad = ((final_len - 1) / 2) + padding;
         for _ in 0..(pad - 1) {
-                print!(" ")
+                empty_space();
         }
 
-        println!("⭐");
+        print!("⭐");
+        for _ in 0..(pad - 1) {
+                empty_space();
+        }
+        println!();
 
         for i in 2..=final_len {
                 if (i % 15) == 0 {
-                        let mut string = String::with_capacity(final_len);
-                        let pad = (final_len - 3) / 2;
+                        let filled = i - 4;
+                        let unfilled_one_side = (((final_len - filled) / 2) - 1) + padding;
+                        let filled_one_side = filled / 2;
 
-                        for _ in 0..pad {
-                                string.push(' ');
+                        for _ in 0..unfilled_one_side {
+                                empty_space();
+                        }
+                        for _ in 0..filled_one_side {
+                                print!("{}", "_".white());
                         }
 
-                        string.push_str("| |");
-                        println!("{}", string.custom_color(CustomColor { r: 136, g: 91, b: 28 }));
+                        print!("{}", "| |".custom_color(CustomColor { r: 136, g: 91, b: 28 }));
+
+                        for _ in 0..filled_one_side {
+                                print!("{}", "_".white());
+                        }
+                        for _ in 0..unfilled_one_side {
+                                empty_space();
+                        }
+
+                        println!();
                         continue;
                 }
 
                 if (i % 2) == 1 && i != 3 {
                         let len = i.saturating_sub(3);
-                        let pad = (final_len - len) / 2;
+                        let pad = ((final_len - len) / 2) + padding;
                         let mut start = 0;
                         if ((i - 1) % 4) == 0 {
                                 start = 1;
                         }
-                        print!("{}", repeat_n(' ', pad - start).collect::<String>());
+                        for _ in 0..(pad - start) {
+                                empty_space();
+                        }
                         if (start == 1) && (i != final_len) {
                                 print!("{}", random_front_shape().custom_color(random_bright_color()))
                         };
@@ -95,56 +135,79 @@ fn main_loop(width: usize) {
                         continue;
                 }
 
-                let pad = (final_len - i) / 2;
-                let mut string = String::with_capacity(final_len);
+                let pad = ((final_len - i) / 2) + padding;
                 for _ in 0..pad {
-                        string.push(' ');
+                        empty_space();
+                }
+                print!("{}", "/".white());
+                for _ in 1..(i - 1) {
+                        print!("{}", "*".green());
+                }
+                print!("{}", "\\".green());
+                for _ in 0..pad {
+                        empty_space();
                 }
 
-                for _ in 0..i {
-                        string.push('*');
-                }
-
-                println!("{}", string.green());
+                println!();
         }
-        let mut string = String::with_capacity(final_len);
         let pad = (final_len - 3) / 2;
 
-        for _ in 0..pad {
-                string.push(' ');
+        for _ in 0..(pad + padding) {
+                empty_space()
         }
 
-        string.push_str("| |");
-        println!("{}", string.custom_color(CustomColor { r: 136, g: 91, b: 28 }));
+        print!("{}", "| |".custom_color(CustomColor { r: 136, g: 91, b: 28 }));
+        for _ in 0..(pad + padding) {
+                empty_space()
+        }
+        println!();
+
+        for _ in 0..padding {
+                print!("{}", "_".white());
+        }
+
         let mut prev = false;
         for i in 0..pad {
                 if ((i % [3, 4].choose(&mut thread_rng()).unwrap()) == 0) && !prev {
                         print!("{}", "◼".red());
                         prev = true;
                 } else {
-                        print!(" ");
+                        print!("{}", "_".white());
                         prev = false;
                 }
         }
         print!("{}", "| |".custom_color(CustomColor { r: 136, g: 91, b: 28 }));
         let mut prev = false;
         for i in 0..pad {
-                if ((i % [5, 6].choose(&mut thread_rng()).unwrap()) == 0) && !prev {
+                if ((i % [3, 4].choose(&mut thread_rng()).unwrap()) == 0) && !prev {
                         print!("{}", "◼".red());
                         prev = true;
                 } else {
-                        print!(" ");
+                        print!("{}", "_".white());
                         prev = false;
                 }
+        }
+        for _ in 0..padding {
+                print!("{}", "_".white());
         }
         println!();
 }
 
+fn empty_space() {
+        if random::<bool>() {
+                print!(" ")
+        } else {
+                print!("{}", "`".white());
+        }
+}
+
 fn main() {
+        let padding = input_padding();
         let width = input_width();
+        print!("{esc}c", esc = 27 as char);
         loop {
-                main_loop(width);
-                sleep(Duration::from_secs(1));
+                main_loop(width, padding);
+                sleep(Duration::from_secs(2));
                 print!("{esc}c", esc = 27 as char);
         }
 }
