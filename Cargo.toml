@@ -1,8 +1,15 @@
 [package]
 name = "Tree"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 
 [dependencies]
 colored = "2.1.0"
 rand = "0.8.5"
+
+[profile.release]
+opt-level = 3
+strip = "symbols"
+lto = "fat"
+codegen-units = 1
+panic = "abort"

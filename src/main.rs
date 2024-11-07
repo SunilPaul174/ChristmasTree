@@ -22,6 +22,14 @@ fn input_padding() -> usize {
         string.trim_end().parse().unwrap()
 }
 
+fn input_waittime() -> f64 {
+        println!("enter wait time in seconds (decimals allowed)");
+        let mut string = String::new();
+        io::stdin().read_line(&mut string).unwrap();
+
+        string.trim_end().parse().unwrap()
+}
+
 pub static BATCH: &[CustomColor] = &[
         CustomColor { r: 255, g: 0, b: 0 },
         CustomColor { r: 255, g: 191, b: 0 },
@@ -204,10 +212,11 @@ fn empty_space() {
 fn main() {
         let padding = input_padding();
         let width = input_width();
+        let waittime = input_waittime();
         print!("{esc}c", esc = 27 as char);
         loop {
                 main_loop(width, padding);
-                sleep(Duration::from_secs(2));
+                sleep(Duration::from_millis((waittime * 1000.0) as u64));
                 print!("{esc}c", esc = 27 as char);
         }
 }
