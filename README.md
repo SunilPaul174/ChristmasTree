@@ -12,4 +12,4 @@ For help, you can pass an argument containing the letter "h" to the program firs
 To build from source, simply run `cargo build --release`, as it is a standard Rust program.
 
 In order to get the small binary that I distribute, run this command.
-`cargo build -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort --target x86_64-unknown-linux-gnu --release`
+```cargo build -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort --target x86_64-unknown-linux-gnu --release```
