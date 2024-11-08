@@ -1,33 +1,62 @@
 use colored::{Colorize, CustomColor};
 use rand::{random, seq::SliceRandom, thread_rng};
-use std::{io, thread::sleep, time::Duration};
+use std::{env, io, thread::sleep, time::Duration};
+use terminal_size::{terminal_size, Height, Width};
 pub static FRONT_CHARS: &[&str] = &["£", "٥", "o", "?", "J"];
 pub static BACK_CHARS: &[&str] = &["3", "٥", "o", "?", "J"];
 pub static MIDDLE_CHARS: &[&str] = &["٥", "o", "?", "J"];
 pub static SET: [u8; 16] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4];
 
-fn input_width() -> usize {
-        println!("enter width");
-        let mut string = String::new();
-        io::stdin().read_line(&mut string).unwrap();
+fn input_parameters() -> (usize, usize, f64) {
+        let mut final_len;
+        let mut padding;
+        let mut waittime;
+        let mut args = env::args();
+        args.next();
 
-        string.trim_end().parse().unwrap()
-}
+        if let Some(arg) = args.next() {
+                if arg.contains("h") {
+                        println!("Enter command line arguments in this order: time interval, the width of the tree, and size padding on the left and right\nall are optional, but if you want to provide width or padding, the ones before in the list also have to be provided\n(eg, to provide width, you need to also give the argument time interval)");
+                        sleep(Duration::from_secs(10));
+                }
+        }
 
-fn input_padding() -> usize {
-        println!("enter padding");
-        let mut string = String::new();
-        io::stdin().read_line(&mut string).unwrap();
+        if let Some((Width(term_width), Height(term_height))) = terminal_size() {
+                final_len = (((15 * term_height) / 16) - 1) as usize;
+                padding = (term_width as usize - 1 - final_len) / 2;
+                waittime = 1.0;
 
-        string.trim_end().parse().unwrap()
-}
+                if let Some(arg) = args.next() {
+                        waittime = arg.trim().parse().unwrap_or(waittime);
+                }
+                if let Some(arg) = args.next() {
+                        final_len = arg.trim().parse().unwrap_or(final_len);
+                }
+                if let Some(arg) = args.next() {
+                        padding = arg.trim().parse().unwrap_or(padding);
+                }
 
-fn input_waittime() -> f64 {
-        println!("enter wait time in seconds (decimals allowed)");
-        let mut string = String::new();
-        io::stdin().read_line(&mut string).unwrap();
+                (final_len, padding, waittime)
+        } else {
+                println!("enter width");
+                let mut width = String::new();
+                io::stdin().read_line(&mut width).unwrap();
+                println!();
 
-        string.trim_end().parse().unwrap()
+                println!("enter padding");
+                let mut padding_buf = String::new();
+                io::stdin().read_line(&mut padding_buf).unwrap();
+                println!();
+
+                final_len = (width.trim_end().parse::<usize>().unwrap() * 2) + 1;
+                padding = padding_buf.trim_end().parse().unwrap();
+
+                println!("enter wait time in seconds (decimals allowed)");
+                let mut waittime_buf = String::new();
+                io::stdin().read_line(&mut waittime_buf).unwrap();
+                waittime = waittime_buf.trim().parse().unwrap();
+                (final_len, padding, waittime)
+        }
 }
 
 pub static BATCH: &[CustomColor] = &[
@@ -74,8 +103,7 @@ fn body(prev: bool) -> bool {
         }
 }
 
-fn main_loop(width: usize, padding: usize) {
-        let final_len = (width * 2) + 1;
+fn main_loop(final_len: usize, padding: usize) {
         let pad = ((final_len - 1) / 2) + padding;
         for _ in 0..(pad - 1) {
                 empty_space();
@@ -209,13 +237,11 @@ fn empty_space() {
 }
 
 fn main() {
-        let padding = input_padding();
-        let width = input_width();
-        let waittime = input_waittime();
-        print!("{esc}c", esc = 27 as char);
+        let (final_len, padding, waittime) = input_parameters();
+        print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
         loop {
-                main_loop(width, padding);
+                main_loop(final_len, padding);
                 sleep(Duration::from_millis((waittime * 1000.0) as u64));
-                print!("{esc}c", esc = 27 as char);
+                print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
         }
 }
