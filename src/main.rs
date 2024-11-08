@@ -14,19 +14,17 @@ fn input_parameters() -> (usize, usize, f64) {
         let mut args = env::args();
         args.next();
 
-        if let Some(arg) = args.next() {
-                if arg.contains("h") {
-                        println!("Enter command line arguments in this order: time interval, the width of the tree, and size padding on the left and right\nall are optional, but if you want to provide width or padding, the ones before in the list also have to be provided\n(eg, to provide width, you need to also give the argument time interval)");
-                        sleep(Duration::from_secs(10));
-                }
-        }
-
         if let Some((Width(term_width), Height(term_height))) = terminal_size() {
                 final_len = (((15 * term_height) / 16) - 1) as usize;
                 padding = (term_width as usize - 1 - final_len) / 2;
                 waittime = 1.0;
 
                 if let Some(arg) = args.next() {
+                        if arg.contains("h") {
+                                println!("Enter command line arguments in this order: time interval, the width of the tree, and size padding on the left and right\nall are optional, but if you want to provide width or padding, the ones before in the list also have to be provided\n(eg, to provide width, you need to also give the argument time interval)");
+                                sleep(Duration::from_secs(10));
+                                return (15, 15, 1.0);
+                        }
                         waittime = arg.trim().parse().unwrap_or(waittime);
                 }
                 if let Some(arg) = args.next() {
