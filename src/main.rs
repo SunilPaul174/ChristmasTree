@@ -3,8 +3,8 @@ use rand::{random, seq::SliceRandom, thread_rng};
 use std::{io, thread::sleep, time::Duration};
 pub static FRONT_CHARS: &[&str] = &["£", "٥", "o", "?", "J"];
 pub static BACK_CHARS: &[&str] = &["3", "٥", "o", "?", "J"];
-pub static MIDDLE_CHARS: &[&str] = &["٥", "o"];
-pub static SET: [u8; 16] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 4];
+pub static MIDDLE_CHARS: &[&str] = &["٥", "o", "?", "J"];
+pub static SET: [u8; 16] = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4];
 
 fn input_width() -> usize {
         println!("enter width");
@@ -62,20 +62,19 @@ fn body(prev: bool) -> bool {
                 let temp = random_middle_shape();
                 print!("{}", temp);
                 true
-        } else if temp {
-                print!("{}", "*".custom_color(CustomColor { r: 136, g: 91, b: 28 }));
+        } else if temp | (SET.choose(&mut thread_rng()).unwrap() == &3) {
+                print!("{}", "@".custom_color(CustomColor { r: 136, g: 91, b: 28 }));
                 false
-        } else if SET.choose(&mut thread_rng()).unwrap() == &3 {
-                print!("{}", "*".white());
+        } else if SET.choose(&mut thread_rng()).unwrap() == &2 {
+                print!("{}", "@".white());
                 false
         } else {
-                print!("{}", "*".green());
+                print!("{}", "@".green());
                 false
         }
 }
 
 fn main_loop(width: usize, padding: usize) {
-        // TODO random colors
         let final_len = (width * 2) + 1;
         let pad = ((final_len - 1) / 2) + padding;
         for _ in 0..(pad - 1) {
@@ -149,7 +148,7 @@ fn main_loop(width: usize, padding: usize) {
                 }
                 print!("{}", "/".white());
                 for _ in 1..(i - 1) {
-                        print!("{}", "*".green());
+                        print!("{}", "@".green());
                 }
                 print!("{}", "\\".green());
                 for _ in 0..pad {
