@@ -9,6 +9,9 @@ all are optional, but if you want to provide width or padding, the ones before i
 To run the program, download the executable for your operating system in the latest release (No extension for Linux, Tree.exe for Windows)
 For help, you can pass an argument containing the letter "h" to the program first.
 
+If you already have `cargo` installed, you can run `cargo install ChristmasTree` to install it.
+![Here is the crates.io link](https://crates.io/crates/ChristmasTree)
+
 To build from source, simply run `cargo build --release`, as it is a standard Rust program.
 
 In order to get the small binary that I distribute, run this command.
